@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transformasi Geometri</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 15px;
+      background-color: #ADD8E6
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+
+    .calculator {
+      display: flex;
+      gap: 20px;
+    }
+
+    .controls {
+      width: 320px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .graph-area {
+      flex: 1;
+      position: relative;
+    }
+
+    canvas {
+      border: 1px solid #ddd;
+      background: #fff;
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    label {
+      font-weight: bold;
+      color: #34495e;
+      margin-top: 8px;
+      display: block;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    button {
+      background: #3498db;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #2980b9;
+    }
+
+    .zoom-controls {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin: 10px 0;
+    }
+
+    .zoom-btn {
+      width: 40px;
+      height: 40px;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .result-box {
+      background: #ecf0f1;
+      padding: 10px;
+      border-radius: 5px;
+      font-family: monospace;
+      margin-top: 10px;
+    }
+
+    /* Watermark di bawah halaman */
+    .watermark {
+      text-align: center;
+      margin-top: 20px;
+      color: #7f8c8d;
+      font-size: 14px;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Graphic Calculator - Transformasi Geometri</h1>
+
+    <div class="calculator">
+      <div class="controls">
+        <h2>Input Titik Awal</h2>
+        <div class="form-group">
+          <label for="x">X:</label>
+          <input type="number" id="x" value="2" step="0.5">
+        </div>
+        <div class="form-group">
+          <label for="y">Y:</label>
+          <input type="number" id="y" value="3" step="0.5">
+        </div>
+
+        <h2>Transformasi</h2>
+        <div class="form-group">
+          <label for="transformType">Jenis Transformasi:</label>
+          <select id="transformType">
+            <option value="refleksi">Refleksi</option>
+            <option value="translasi">Translasi</option>
+            <option value="rotasi">Rotasi</option>
+            <option value="dilatasi">Dilatasi</option>
+          </select>
+        </div>
+
+        <!-- Refleksi -->
+        <div id="refleksiOptions">
+          <label for="refleksiType">Refleksi terhadap:</label>
+          <select id="refleksiType">
+            <option value="x">Sumbu X</option>
+            <option value="y">Sumbu Y</option>
+            <option value="y=x">Garis y = x</option>
+            <option value="y=-x">Garis y = -x</option>
+            <option value="origin">Titik (0,0)</option>
+            <option value="point">Titik (a,b)</option>
+            <option value="x=h">Garis x = h</option>
+            <option value="y=h">Garis y = h</option>
+          </select>
+          <div id="extraRefleksi" style="display:none; margin-top:8px;">
+            <input type="number" id="aRef" placeholder="a" value="0" style="width:48%; display:inline-block;">
+            <input type="number" id="bRef" placeholder="b atau h" value="0" style="width:48%; display:inline-block;">
+          </div>
+        </div>
+
+        <!-- Translasi -->
+        <div id="translasiInputs" style="display:none;">
+          <label for="tx">Translasi Tx:</label>
+          <input type="number" id="tx" value="1" step="0.5">
+          <label for="ty">Translasi Ty:</label>
+          <input type="number" id="ty" value="1" step="0.5">
+        </div>
+
+        <!-- Rotasi -->
+        <div id="rotasiInputs" style="display:none;">
+          <label for="rotasiSudut">Sudut Rotasi:</label>
+          <select id="rotasiSudut">
+            <option value="90">90°</option>
+            <option value="180">180°</option>
+            <option value="270">270°</option>
+          </select>
+          <label>Pusat Rotasi:</label>
+          <input type="number" id="rotasiPusatX" placeholder="cx" value="0" step="0.5">
+          <input type="number" id="rotasiPusatY" placeholder="cy" value="0" step="0.5">
+        </div>
+
+        <!-- Dilatasi -->
+        <div id="dilatasiInputs" style="display:none;">
+          <label for="skala">Faktor Skala:</label>
+          <input type="number" id="skala" value="2" step="0.1">
+          <label>Pusat Dilatasi:</label>
+          <input type="number" id="dilatasiPusatX" placeholder="cx" value="0" step="0.5">
+          <input type="number" id="dilatasiPusatY" placeholder="cy" value="0" step="0.5">
+        </div>
+
+        <button id="calculateBtn">Hitung & Gambar</button>
+
+        <div class="zoom-controls">
+          <button class="zoom-btn" id="zoomIn">+</button>
+          <button class="zoom-btn" id="zoomOut">−</button>
+          <span id="zoomLevel">Skala: 1.0</span>
+        </div>
+
+        <div class="result-box" id="resultBox">
+          Hasil: (x, y) → (x', y')
+        </div>
+      </div>
+
+      <div class="graph-area">
+        <canvas id="graphCanvas" width="1000" height="800"></canvas>
+      </div>
+    </div>
+
+    <!-- 💧 Watermark Nama -->
+    <div class="watermark">
+      Dibuat oleh: <strong>KELOMPOK 7 : Fatia, Fahri A., Habibi, Rachel</strong> | Transformasi Geometri
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('graphCanvas');
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    const centerX = width / 2;
+    const centerY = height / 2;
+
+    // Skala zoom: 40px per unit awal
+    let scale = 40; // px per unit
+    const minScale = 10;
+    const maxScale = 100;
+
+    // Fungsi menggambar sumbu dan grid
+    function drawAxes() {
+      ctx.clearRect(0, 0, width, height);
+
+      const xRange = Math.ceil((width / 2) / scale);
+      const yRange = Math.ceil((height / 2) / scale);
+
+      ctx.strokeStyle = '#eee';
+      ctx.fillStyle = '#666';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      // Garis vertikal (sumbu Y) + label
+      for (let i = -xRange; i <= xRange; i++) {
+        const x = centerX + i * scale;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+
+        if (i !== 0) {
+          ctx.fillText(i.toString(), x, centerY + 15);
+        }
+      }
+
+      // Garis horizontal (sumbu X) + label
+      for (let i = -yRange; i <= yRange; i++) {
+        const y = centerY - i * scale;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+
+        if (i !== 0) {
+          ctx.fillText(i.toString(), centerX - 15, y);
+        }
+      }
+
+      // Sumbu utama
+      ctx.strokeStyle = '#333';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, centerY);
+      ctx.lineTo(width, centerY);
+      ctx.moveTo(centerX, 0);
+      ctx.lineTo(centerX, height);
+      ctx.stroke();
+
+      // Label (0,0)
+      ctx.fillStyle = '#000';
+      ctx.fillText('0', centerX - 5, centerY + 15);
+    }
+
+    // Fungsi menggambar titik + label teks
+    function drawLabeledPoint(x, y, label, color = 'blue') {
+      const screenX = centerX + x * scale;
+      const screenY = centerY - y * scale;
+
+      // Gambar lingkaran
+      ctx.beginPath();
+      ctx.arc(screenX, screenY, 6, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Gambar label
+      ctx.fillStyle = color;
+      ctx.font = 'bold 14px Arial';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(label, screenX + 8, screenY - 6);
+    }
+
+    // Event listeners untuk UI
+    document.getElementById('transformType').addEventListener('change', function() {
+      const type = this.value;
+      document.getElementById('translasiInputs').style.display = type === 'translasi' ? 'block' : 'none';
+      document.getElementById('rotasiInputs').style.display = type === 'rotasi' ? 'block' : 'none';
+      document.getElementById('dilatasiInputs').style.display = type === 'dilatasi' ? 'block' : 'none';
+      document.getElementById('refleksiOptions').style.display = type === 'refleksi' ? 'block' : 'none';
+      document.getElementById('extraRefleksi').style.display = 'none';
+    });
+
+    document.getElementById('refleksiType').addEventListener('change', function() {
+      document.getElementById('extraRefleksi').style.display =
+        ['point', 'x=h', 'y=h'].includes(this.value) ? 'block' : 'none';
+    });
+
+    // Zoom
+    document.getElementById('zoomIn').addEventListener('click', () => {
+      if (scale < maxScale) {
+        scale += 5;
+        updateZoomDisplay();
+        redraw();
+      }
+    });
+
+    document.getElementById('zoomOut').addEventListener('click', () => {
+      if (scale > minScale) {
+        scale -= 5;
+        updateZoomDisplay();
+        redraw();
+      }
+    });
+
+    function updateZoomDisplay() {
+      document.getElementById('zoomLevel').textContent = `Skala: ${(scale / 40).toFixed(1)}`;
+    }
+
+    let lastOriginal = null;
+    let lastTransformed = null;
+
+    function redraw() {
+      drawAxes();
+      if (lastOriginal) {
+        drawLabeledPoint(lastOriginal.x, lastOriginal.y, `A(${lastOriginal.x}, ${lastOriginal.y})`, 'blue');
+      }
+      if (lastTransformed) {
+        drawLabeledPoint(lastTransformed.x, lastTransformed.y, `A'(${lastTransformed.x.toFixed(2)}, ${lastTransformed.y.toFixed(2)})`, 'red');
+      }
+    }
+
+    document.getElementById('calculateBtn').addEventListener('click', function() {
+      const x = parseFloat(document.getElementById('x').value);
+      const y = parseFloat(document.getElementById('y').value);
+      const type = document.getElementById('transformType').value;
+
+      let resultX, resultY;
+
+      if (type === 'refleksi') {
+        const refType = document.getElementById('refleksiType').value;
+        if (refType === 'point' || refType === 'x=h' || refType === 'y=h') {
+          const a = parseFloat(document.getElementById('aRef').value);
+          const b = parseFloat(document.getElementById('bRef').value);
+          if (refType === 'point') {
+            resultX = 2 * a - x;
+            resultY = 2 * b - y;
+          } else if (refType === 'x=h') {
+            resultX = 2 * a - x;
+            resultY = y;
+          } else if (refType === 'y=h') {
+            resultX = x;
+            resultY = 2 * b - y;
+          }
+        } else {
+          switch (refType) {
+            case 'x': resultX = x; resultY = -y; break;
+            case 'y': resultX = -x; resultY = y; break;
+            case 'y=x': resultX = y; resultY = x; break;
+            case 'y=-x': resultX = -y; resultY = -x; break;
+            case 'origin': resultX = -x; resultY = -y; break;
+          }
+        }
+      } else if (type === 'translasi') {
+        const tx = parseFloat(document.getElementById('tx').value);
+        const ty = parseFloat(document.getElementById('ty').value);
+        resultX = x + tx;
+        resultY = y + ty;
+      } else if (type === 'rotasi') {
+        const sudut = parseFloat(document.getElementById('rotasiSudut').value);
+        const cx = parseFloat(document.getElementById('rotasiPusatX').value);
+        const cy = parseFloat(document.getElementById('rotasiPusatY').value);
+
+        const rad = (sudut * Math.PI) / 180;
+        const cos = Math.cos(rad);
+        const sin = Math.sin(rad);
+
+        resultX = (x - cx) * cos - (y - cy) * sin + cx;
+        resultY = (x - cx) * sin + (y - cy) * cos + cy;
+      } else if (type === 'dilatasi') {
+        const k = parseFloat(document.getElementById('skala').value);
+        const cx = parseFloat(document.getElementById('dilatasiPusatX').value);
+        const cy = parseFloat(document.getElementById('dilatasiPusatY').value);
+
+        resultX = k * (x - cx) + cx;
+        resultY = k * (y - cy) + cy;
+      }
+
+      lastOriginal = { x, y };
+      lastTransformed = { x: resultX, y: resultY };
+
+      redraw();
+
+      document.getElementById('resultBox').textContent =
+        `Hasil: (${x}, ${y}) → (${resultX.toFixed(2)}, ${resultY.toFixed(2)})`;
+    });
+
+    // Inisialisasi
+    updateZoomDisplay();
+    drawAxes();
+  </script>
+</body>
+</html>
